@@ -4,6 +4,7 @@ import android.app.Application;
 
 import javax.inject.Singleton;
 
+import androidx.lifecycle.ViewModel;
 import dagger.Module;
 import dagger.Provides;
 
@@ -11,7 +12,7 @@ import dagger.Provides;
  * Created by Peter Hoc on 10/11/2018.
  */
 
-@Module(includes = {DbModule.class})
+@Module(includes = {DbModule.class, ViewModelModule.class})
 public final class AppModule {
     private final Application application;
 

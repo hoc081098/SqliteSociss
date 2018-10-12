@@ -35,9 +35,10 @@ public class DbModule {
                 .name(DbCallback.DATABASE_NAME)
                 .callback(new DbCallback())
                 .build();
-        SupportSQLiteOpenHelper helper = new FrameworkSQLiteOpenHelperFactory().create(
-                configuration
-        );
-        return sqlBrite.wrapDatabaseHelper(helper, Schedulers.io());
+        SupportSQLiteOpenHelper helper = new FrameworkSQLiteOpenHelperFactory()
+                .create(configuration);
+        final BriteDatabase briteDatabase = sqlBrite.wrapDatabaseHelper(helper, Schedulers.io());
+        briteDatabase.setLoggingEnabled(true);
+        return briteDatabase;
     }
 }

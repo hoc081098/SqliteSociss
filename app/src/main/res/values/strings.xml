@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SqliteSociss</string>
+    <string name="add_new_contact">Add new contact</string>
 </resources>

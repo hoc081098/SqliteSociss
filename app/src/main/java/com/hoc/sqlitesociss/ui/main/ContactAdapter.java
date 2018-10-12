@@ -1,4 +1,4 @@
-package com.hoc.sqlitesociss.ui;
+package com.hoc.sqlitesociss.ui.main;
 
 import android.view.LayoutInflater;
 import android.view.View;
