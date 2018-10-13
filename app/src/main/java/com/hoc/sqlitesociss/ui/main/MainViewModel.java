@@ -19,6 +19,8 @@ import io.reactivex.BackpressureStrategy;
  */
 
 public class MainViewModel extends ViewModel {
+    private static final String QUERY_ALL_CONTACTS = "SELECT * FROM " + DatabaseContract.ContactEntry.TABLE_NAME;
+
     @NonNull
     private final BriteDatabase db;
     @NonNull
@@ -31,7 +33,7 @@ public class MainViewModel extends ViewModel {
         this.db = db;
         this.executor = executor;
         contactsLiveData = LiveDataReactiveStreams.fromPublisher(
-                this.db.createQuery(DatabaseContract.ContactEntry.TABLE_NAME, "SELECT * FROM " + DatabaseContract.ContactEntry.TABLE_NAME)
+                this.db.createQuery(DatabaseContract.ContactEntry.TABLE_NAME, QUERY_ALL_CONTACTS)
                         .mapToList(ContactEntity.MAPPER)
                         .toFlowable(BackpressureStrategy.LATEST)
         );

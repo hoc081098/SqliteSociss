@@ -11,6 +11,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
+
+import static androidx.recyclerview.widget.RecyclerView.NO_POSITION;
 
 /**
  * Created by Peter Hoc on 10/11/2018.
@@ -28,6 +32,12 @@ public class ContactAdapter extends ListAdapter<ContactEntity, ContactAdapter.Vi
         }
     };
 
+    private final PublishSubject<ContactEntity> publishSubject = PublishSubject.create();
+
+    public Observable<ContactEntity> getClickObservable() {
+        return publishSubject.hide();
+    }
+
     ContactAdapter() {
         super(DIFF_CALLBACK);
     }
@@ -44,17 +54,26 @@ public class ContactAdapter extends ListAdapter<ContactEntity, ContactAdapter.Vi
         holder.bind(getItem(position));
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private final TextView text1;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             text1 = itemView.findViewById(android.R.id.text1);
+            itemView.setOnClickListener(this);
         }
 
         void bind(ContactEntity item) {
             text1.setText(item.getName() + " #" + item.getId());
+        }
+
+        @Override
+        public void onClick(View v) {
+            final int adapterPosition = getAdapterPosition();
+            if (adapterPosition != NO_POSITION) {
+                publishSubject.onNext(getItem(adapterPosition));
+            }
         }
     }
 }

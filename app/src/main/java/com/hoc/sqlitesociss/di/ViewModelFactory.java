@@ -2,6 +2,7 @@ package com.hoc.sqlitesociss.di;
 
 import com.hoc.sqlitesociss.AppExecutor;
 import com.hoc.sqlitesociss.ui.add.AddContactViewModel;
+import com.hoc.sqlitesociss.ui.detail.DetailViewModel;
 import com.hoc.sqlitesociss.ui.main.MainViewModel;
 import com.squareup.sqlbrite3.BriteDatabase;
 
@@ -36,6 +37,9 @@ public class ViewModelFactory implements ViewModelProvider.Factory {
         }
         if (modelClass.isAssignableFrom(AddContactViewModel.class)) {
             return (T) new AddContactViewModel(db, executor);
+        }
+        if (modelClass.isAssignableFrom(DetailViewModel.class)) {
+            return (T) new DetailViewModel(db, executor);
         }
         throw new IllegalStateException("Don't know ViewModel");
     }

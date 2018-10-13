@@ -9,6 +9,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.hoc.sqlitesociss.MyApp;
 import com.hoc.sqlitesociss.R;
 import com.hoc.sqlitesociss.ui.add.AddContactActivity;
+import com.hoc.sqlitesociss.ui.detail.DetailActivity;
 
 import javax.inject.Inject;
 
@@ -18,13 +19,20 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 
 public class MainActivity extends AppCompatActivity {
+    public static final String EXTRA_CONTACT_ENTITY = "EXTRA_CONTACT_ENTITY";
+
     private final ContactAdapter adapter = new ContactAdapter();
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     @Inject
     ViewModelProvider.Factory viewModelFactory;
     private MainViewModel mainViewModel;
+    private RecyclerView recycler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
         MyApp.getAppComponent(this).inject(this);
 
-        final RecyclerView recycler = findViewById(R.id.recycler_contacts);
+        recycler = findViewById(R.id.recycler_contacts);
         recycler.setHasFixedSize(true);
         recycler.setLayoutManager(new LinearLayoutManager(this));
         recycler.setAdapter(adapter);
@@ -46,6 +54,30 @@ public class MainActivity extends AppCompatActivity {
                         .show();
             }
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        final Disposable disposable = adapter.getClickObservable()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        contactEntity -> {
+                            final Intent intent = new Intent(this, DetailActivity.class);
+                            intent.putExtra(EXTRA_CONTACT_ENTITY, contactEntity);
+                            startActivity(intent);
+                        },
+                        e -> Snackbar.make(recycler.getRootView(), e.getMessage(), Snackbar.LENGTH_SHORT)
+                                .show()
+                );
+        compositeDisposable.add(disposable);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        compositeDisposable.clear();
     }
 
     @Override
@@ -71,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
     private void onDeleteAll() {
         new AlertDialog.Builder(this)
                 .setTitle("Delete all")
+                .setIcon(R.drawable.ic_warning_black_24dp)
                 .setMessage("Do you want to delete all contacts")
                 .setNegativeButton("Cancel", (dialog, __) -> dialog.dismiss())
                 .setPositiveButton("Ok", (dialog, __) -> {

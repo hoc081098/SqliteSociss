@@ -1,6 +1,8 @@
 package com.hoc.sqlitesociss.data;
 
 import android.database.Cursor;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import java.util.Date;
 import java.util.Objects;
@@ -21,7 +23,7 @@ import static com.hoc.sqlitesociss.data.DatabaseContract.ContactEntry.COLUMN_NAM
  * Created by Peter Hoc on 10/11/2018.
  */
 
-public class ContactEntity {
+public class ContactEntity implements Parcelable {
     private final long id;
 
     @NonNull
@@ -50,6 +52,45 @@ public class ContactEntity {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
+
+    protected ContactEntity(Parcel in) {
+        id = in.readLong();
+        name = in.readString();
+        phone = in.readString();
+        address = in.readString();
+        male = in.readByte() != 0;
+        createdAt = new Date(in.readLong());
+        final long l = in.readLong();
+        updatedAt = l == -1 ? null : new Date(l);
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
+        dest.writeString(name);
+        dest.writeString(phone);
+        dest.writeString(address);
+        dest.writeByte((byte) (male ? 1 : 0));
+        dest.writeLong(createdAt.getTime());
+        dest.writeLong(updatedAt != null ? updatedAt.getTime() : -1);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<ContactEntity> CREATOR = new Creator<ContactEntity>() {
+        @Override
+        public ContactEntity createFromParcel(Parcel in) {
+            return new ContactEntity(in);
+        }
+
+        @Override
+        public ContactEntity[] newArray(int size) {
+            return new ContactEntity[size];
+        }
+    };
 
     @NonNull
     public String getName() {
@@ -110,7 +151,11 @@ public class ContactEntity {
         final String address = cursor.getString(cursor.getColumnIndex(COLUMN_NAME_ADDRESS));
         final int male = cursor.getInt(cursor.getColumnIndex(COLUMN_NAME_MALE));
         final Date createdAt = new Date(cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_CREATED_AT)));
-        final Date updatedAt = new Date(cursor.getLong(cursor.getColumnIndex(COLUMN_NAME_UPDATED_AT)));
+        final int columnUpdatedAtIndex = cursor.getColumnIndex(COLUMN_NAME_UPDATED_AT);
+        final Date updatedAt = cursor.isNull(columnUpdatedAtIndex)
+                ? null
+                : new Date(cursor.getLong(columnUpdatedAtIndex));
+        ;
         return new ContactEntity(id, name, phone, address, male == 1, createdAt, updatedAt);
     };
 }

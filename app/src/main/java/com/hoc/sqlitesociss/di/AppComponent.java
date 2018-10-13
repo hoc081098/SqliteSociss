@@ -1,6 +1,7 @@
 package com.hoc.sqlitesociss.di;
 
 import com.hoc.sqlitesociss.ui.add.AddContactActivity;
+import com.hoc.sqlitesociss.ui.detail.DetailActivity;
 import com.hoc.sqlitesociss.ui.main.MainActivity;
 
 import javax.inject.Singleton;
@@ -18,5 +19,7 @@ public interface AppComponent {
     void inject(MainActivity mainActivity);
 
     void inject(AddContactActivity addContactActivity);
+
+    void inject(DetailActivity detailActivity);
 
 }

@@ -9,6 +9,8 @@ import java.util.concurrent.Executors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import androidx.annotation.NonNull;
+
 /**
  * Created by Peter Hoc on 10/12/2018.
  */
@@ -40,7 +42,7 @@ public class AppExecutor {
         private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
         @Override
-        public void execute(Runnable command) {
+        public void execute(@NonNull Runnable command) {
             mainHandler.post(command);
         }
     }
