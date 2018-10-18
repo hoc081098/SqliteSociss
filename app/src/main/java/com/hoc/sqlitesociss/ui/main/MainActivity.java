@@ -11,10 +11,13 @@ import com.hoc.sqlitesociss.R;
 import com.hoc.sqlitesociss.ui.add.AddContactActivity;
 import com.hoc.sqlitesociss.ui.detail.DetailActivity;
 
+import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -22,94 +25,116 @@ import androidx.recyclerview.widget.RecyclerView;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.processors.PublishProcessor;
 
 public class MainActivity extends AppCompatActivity {
-    public static final String EXTRA_CONTACT_ENTITY = "EXTRA_CONTACT_ENTITY";
+  public static final String EXTRA_CONTACT_ENTITY = "EXTRA_CONTACT_ENTITY";
 
-    private final ContactAdapter adapter = new ContactAdapter();
-    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
+  private final ContactAdapter adapter = new ContactAdapter();
+  private final CompositeDisposable compositeDisposable = new CompositeDisposable();
+  private final PublishProcessor<String> searchString = PublishProcessor.create();
+  @Inject
+  ViewModelProvider.Factory viewModelFactory;
+  private MainViewModel mainViewModel;
+  private RecyclerView recycler;
 
-    @Inject
-    ViewModelProvider.Factory viewModelFactory;
-    private MainViewModel mainViewModel;
-    private RecyclerView recycler;
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.main_activity);
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_activity);
+    MyApp.getAppComponent(this).inject(this);
 
-        MyApp.getAppComponent(this).inject(this);
+    setupRecyclerView();
 
-        recycler = findViewById(R.id.recycler_contacts);
-        recycler.setHasFixedSize(true);
-        recycler.setLayoutManager(new LinearLayoutManager(this));
-        recycler.setAdapter(adapter);
+    mainViewModel = ViewModelProviders.of(this, viewModelFactory).get(MainViewModel.class);
+    mainViewModel.getContacts().observe(this, adapter::submitList);
+    mainViewModel.getMessage().observe(this, charSequence -> {
+      if (charSequence != null) {
+        Snackbar.make(recycler.getRootView(), charSequence, Snackbar.LENGTH_SHORT)
+            .show();
+      }
+    });
+    mainViewModel.searchContact(searchString
+        .debounce(500, TimeUnit.MILLISECONDS)
+        .startWith("")
+        .distinctUntilChanged()
+    );
+  }
 
-        mainViewModel = ViewModelProviders.of(this, viewModelFactory).get(MainViewModel.class);
-        mainViewModel.getContacts().observe(this, adapter::submitList);
-        mainViewModel.getMessage().observe(this, charSequence -> {
-            if (charSequence != null) {
-                Snackbar.make(recycler.getRootView(), charSequence, Snackbar.LENGTH_SHORT)
-                        .show();
-            }
-        });
-    }
+  private void setupRecyclerView() {
+    recycler = findViewById(R.id.recycler_contacts);
+    recycler.setHasFixedSize(true);
+    recycler.setLayoutManager(new LinearLayoutManager(this));
+    recycler.setAdapter(adapter);
+  }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+  @Override
+  protected void onStart() {
+    super.onStart();
 
-        final Disposable disposable = adapter.getClickObservable()
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        contactEntity -> {
-                            final Intent intent = new Intent(this, DetailActivity.class);
-                            intent.putExtra(EXTRA_CONTACT_ENTITY, contactEntity);
-                            startActivity(intent);
-                        },
-                        e -> Snackbar.make(recycler.getRootView(), e.getMessage(), Snackbar.LENGTH_SHORT)
-                                .show()
-                );
-        compositeDisposable.add(disposable);
-    }
+    final Disposable disposable = adapter.getClickObservable()
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(
+            contactEntity -> {
+              final Intent intent = new Intent(this, DetailActivity.class);
+              intent.putExtra(EXTRA_CONTACT_ENTITY, contactEntity);
+              startActivity(intent);
+            },
+            e -> Snackbar.make(recycler.getRootView(), e.getMessage(), Snackbar.LENGTH_SHORT)
+                .show()
+        );
+    compositeDisposable.add(disposable);
+  }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        compositeDisposable.clear();
-    }
+  @Override
+  protected void onStop() {
+    super.onStop();
+    compositeDisposable.clear();
+  }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.main_menu, menu);
+    ((SearchView) menu.findItem(R.id.action_search).getActionView()).setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+      @Override
+      public boolean onQueryTextSubmit(String query) {
+        return false;
+      }
+
+      @Override
+      public boolean onQueryTextChange(String newText) {
+        searchString.onNext(newText);
         return true;
-    }
+      }
+    });
+    return true;
+  }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        final int itemId = item.getItemId();
-        if (itemId == R.id.action_create_new) {
-            startActivity(new Intent(this, AddContactActivity.class));
-            return true;
-        }
-        if (itemId == R.id.action_delete_all) {
-            onDeleteAll();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    final int itemId = item.getItemId();
+    if (itemId == R.id.action_create_new) {
+      startActivity(new Intent(this, AddContactActivity.class));
+      return true;
     }
+    if (itemId == R.id.action_delete_all) {
+      onDeleteAll();
+      return true;
+    }
+    return super.onOptionsItemSelected(item);
+  }
 
-    private void onDeleteAll() {
-        new AlertDialog.Builder(this)
-                .setTitle("Delete all")
-                .setIcon(R.drawable.ic_warning_black_24dp)
-                .setMessage("Do you want to delete all contacts")
-                .setNegativeButton("Cancel", (dialog, __) -> dialog.dismiss())
-                .setPositiveButton("Ok", (dialog, __) -> {
-                    dialog.dismiss();
-                    mainViewModel.deleteAllContacts();
-                })
-                .show();
-    }
+  private void onDeleteAll() {
+    new AlertDialog.Builder(this)
+        .setTitle("Delete all")
+        .setIcon(R.drawable.ic_warning_black_24dp)
+        .setMessage("Do you want to delete all contacts")
+        .setNegativeButton("Cancel", (dialog, __) -> dialog.dismiss())
+        .setPositiveButton("Ok", (dialog, __) -> {
+          dialog.dismiss();
+          mainViewModel.deleteAllContacts();
+        })
+        .show();
+  }
 }

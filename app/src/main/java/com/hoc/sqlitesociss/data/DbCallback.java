@@ -41,12 +41,19 @@ public class DbCallback extends SupportSQLiteOpenHelper.Callback {
     }
 
     private void addData(SupportSQLiteDatabase db) {
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 100; i++) {
+            final char ch = (char) ('a' + i);
+            final String name = "Name " + String.valueOf(ch);
+            final String address = "Address " + String.valueOf(ch);
+            final StringBuilder phone = new StringBuilder();
+            for (int j = 0; j < 10; j++) phone.append(i % 10);
+            final int isMale = i % 2;
+
             final ContentValues contentValues = new ContentValues();
-            contentValues.put(DatabaseContract.ContactEntry.COLUMN_NAME_NAME, "Name " + i);
-            contentValues.put(DatabaseContract.ContactEntry.COLUMN_NAME_ADDRESS, "Address " + i);
-            contentValues.put(DatabaseContract.ContactEntry.COLUMN_NAME_PHONE, "Phone " + i);
-            contentValues.put(DatabaseContract.ContactEntry.COLUMN_NAME_MALE, i % 2);
+            contentValues.put(DatabaseContract.ContactEntry.COLUMN_NAME_NAME, name);
+            contentValues.put(DatabaseContract.ContactEntry.COLUMN_NAME_ADDRESS, address);
+            contentValues.put(DatabaseContract.ContactEntry.COLUMN_NAME_PHONE, phone.toString());
+            contentValues.put(DatabaseContract.ContactEntry.COLUMN_NAME_MALE, isMale);
             contentValues.put(DatabaseContract.ContactEntry.COLUMN_NAME_CREATED_AT, Calendar.getInstance().getTimeInMillis());
             db.insert(DatabaseContract.ContactEntry.TABLE_NAME, SQLiteDatabase.CONFLICT_FAIL, contentValues);
         }

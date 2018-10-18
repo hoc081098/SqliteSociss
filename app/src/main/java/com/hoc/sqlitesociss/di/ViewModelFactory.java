@@ -19,28 +19,28 @@ import androidx.lifecycle.ViewModelProvider;
 
 @Singleton
 public class ViewModelFactory implements ViewModelProvider.Factory {
-    private final BriteDatabase db;
-    private final AppExecutor executor;
+  private final BriteDatabase db;
+  private final AppExecutor executor;
 
-    @Inject
-    public ViewModelFactory(BriteDatabase db, AppExecutor executor) {
-        this.db = db;
-        this.executor = executor;
-    }
+  @Inject
+  public ViewModelFactory(BriteDatabase db, AppExecutor executor) {
+    this.db = db;
+    this.executor = executor;
+  }
 
-    @SuppressWarnings("unchecked")
-    @NonNull
-    @Override
-    public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
-        if (modelClass.isAssignableFrom(MainViewModel.class)) {
-            return (T) new MainViewModel(db, executor);
-        }
-        if (modelClass.isAssignableFrom(AddContactViewModel.class)) {
-            return (T) new AddContactViewModel(db, executor);
-        }
-        if (modelClass.isAssignableFrom(DetailViewModel.class)) {
-            return (T) new DetailViewModel(db, executor);
-        }
-        throw new IllegalStateException("Don't know ViewModel");
+  @SuppressWarnings("unchecked")
+  @NonNull
+  @Override
+  public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
+    if (modelClass.isAssignableFrom(MainViewModel.class)) {
+      return (T) new MainViewModel(db, executor);
     }
+    if (modelClass.isAssignableFrom(AddContactViewModel.class)) {
+      return (T) new AddContactViewModel(db, executor);
+    }
+    if (modelClass.isAssignableFrom(DetailViewModel.class)) {
+      return (T) new DetailViewModel(db, executor);
+    }
+    throw new IllegalStateException("Don't know ViewModel");
+  }
 }

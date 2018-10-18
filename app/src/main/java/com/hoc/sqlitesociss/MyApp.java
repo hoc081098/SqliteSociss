@@ -13,18 +13,18 @@ import com.hoc.sqlitesociss.di.DbModule;
  */
 
 public final class MyApp extends Application {
-    private AppComponent appComponent;
+  private AppComponent appComponent;
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        appComponent = DaggerAppComponent.builder()
-                .appModule(new AppModule(this))
-                .dbModule(new DbModule())
-                .build();
-    }
+  public static AppComponent getAppComponent(Context context) {
+    return ((MyApp) context.getApplicationContext()).appComponent;
+  }
 
-    public static AppComponent getAppComponent(Context context) {
-        return ((MyApp) context.getApplicationContext()).appComponent;
-    }
+  @Override
+  public void onCreate() {
+    super.onCreate();
+    appComponent = DaggerAppComponent.builder()
+        .appModule(new AppModule(this))
+        .dbModule(new DbModule())
+        .build();
+  }
 }

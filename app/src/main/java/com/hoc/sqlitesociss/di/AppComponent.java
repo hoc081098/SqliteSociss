@@ -16,10 +16,10 @@ import dagger.Component;
 @Component(modules = {AppModule.class})
 public interface AppComponent {
 
-    void inject(MainActivity mainActivity);
+  void inject(MainActivity mainActivity);
 
-    void inject(AddContactActivity addContactActivity);
+  void inject(AddContactActivity addContactActivity);
 
-    void inject(DetailActivity detailActivity);
+  void inject(DetailActivity detailActivity);
 
 }

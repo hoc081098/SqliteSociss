@@ -21,24 +21,24 @@ import io.reactivex.schedulers.Schedulers;
 
 @Module
 public class DbModule {
-    @Provides
-    @Singleton
-    SqlBrite provideSqlBrite() {
-        return new SqlBrite.Builder().logger(message -> Log.d("@@@", message)).build();
-    }
+  @Provides
+  @Singleton
+  SqlBrite provideSqlBrite() {
+    return new SqlBrite.Builder().logger(message -> Log.d("@@@", message)).build();
+  }
 
-    @Provides
-    @Singleton
-    BriteDatabase provideDatabase(SqlBrite sqlBrite, Application application) {
-        final SupportSQLiteOpenHelper.Configuration configuration = SupportSQLiteOpenHelper.Configuration
-                .builder(application)
-                .name(DbCallback.DATABASE_NAME)
-                .callback(new DbCallback())
-                .build();
-        SupportSQLiteOpenHelper helper = new FrameworkSQLiteOpenHelperFactory()
-                .create(configuration);
-        final BriteDatabase briteDatabase = sqlBrite.wrapDatabaseHelper(helper, Schedulers.io());
-        briteDatabase.setLoggingEnabled(true);
-        return briteDatabase;
-    }
+  @Provides
+  @Singleton
+  BriteDatabase provideDatabase(SqlBrite sqlBrite, Application application) {
+    final SupportSQLiteOpenHelper.Configuration configuration = SupportSQLiteOpenHelper.Configuration
+        .builder(application)
+        .name(DbCallback.DATABASE_NAME)
+        .callback(new DbCallback())
+        .build();
+    SupportSQLiteOpenHelper helper = new FrameworkSQLiteOpenHelperFactory()
+        .create(configuration);
+    final BriteDatabase briteDatabase = sqlBrite.wrapDatabaseHelper(helper, Schedulers.io());
+    briteDatabase.setLoggingEnabled(true);
+    return briteDatabase;
+  }
 }
